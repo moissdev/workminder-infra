@@ -9,7 +9,7 @@ CREATE TABLE profiles (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-==================================================
+-- ==================================================
 
 -- Tabla de Materias
 
@@ -20,7 +20,7 @@ CREATE TABLE subjects (
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL
 );
 
-==================================================
+-- ==================================================
 
 -- Tabla de Tareas
 
@@ -39,18 +39,18 @@ CREATE TABLE tasks (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-==================================================
+-- ==================================================
 
 -- Tabla de Subtareas
 
 CREATE TABLE subtasks (
   subtask_id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   task_id UUID REFERENCES tasks(id) ON DELETE CASCADE NOT NULL,
-  subtask_id TEXT NOT NULL,
+  subtask_name TEXT NOT NULL,
   is_completed BOOLEAN DEFAULT FALSE
 );
 
-==================================================
+-- ==================================================
 
 -- Tabla de Recordatorios
 
@@ -60,7 +60,7 @@ CREATE TABLE reminders (
   days_advance INT NOT NULL
 );
 
-====================================================================================================
+-- ====================================================================================================
 
 -- SECCIÓN DE RLS Y POLICIES PARA LAS TABLAS
 
@@ -72,7 +72,7 @@ ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subtasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reminders ENABLE ROW LEVEL SECURITY;
 
-==================================================
+-- ==================================================
 
 -- Perfiles policies
 
@@ -84,7 +84,7 @@ CREATE POLICY update_own_profile
 ON profiles FOR UPDATE 
 USING (auth.uid() = id);
 
-==================================================
+-- ==================================================
 
 -- Materias policies
 
@@ -104,7 +104,7 @@ CREATE POLICY delete_own_subjects
 ON subjects FOR DELETE 
 USING (auth.uid() = user_id);
 
-==================================================
+-- ==================================================
 
 -- Tareas policies
 
@@ -124,7 +124,7 @@ CREATE POLICY delete_own_tasks
 ON tasks FOR DELETE 
 USING (auth.uid() = user_id);
 
-==================================================
+-- ==================================================
 
 -- Subtareas policies
 
@@ -132,26 +132,26 @@ CREATE POLICY select_own_subtasks
 ON subtasks FOR SELECT 
 USING (EXISTS (
   SELECT 1 FROM tasks 
-  WHERE taks.id = subtasks.task_id 
+  WHERE tasks.id = subtasks.task_id 
   AND tasks.user_id = auth.uid()
 ));
 
 CREATE POLICY insert_own_subtasks
 ON subtasks FOR INSERT 
 WITH CHECK (EXISTS (
-  SELECT 1 FROM tareas 
+  SELECT 1 FROM tasks 
   WHERE tasks.id = subtasks.task_id 
   AND tasks.user_id = auth.uid()
 ));
 
-==================================================
+-- ==================================================
 
 -- Recordatorios policies
 
 CREATE POLICY select_own_reminders
 ON reminders FOR SELECT 
 USING (EXISTS (
-  SELECT 1 FROM tareas 
+  SELECT 1 FROM tasks 
   WHERE tasks.id = reminders.task_id 
   AND tasks.user_id = auth.uid()
 ));
