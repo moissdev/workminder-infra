@@ -155,3 +155,31 @@ USING (EXISTS (
   WHERE tasks.id = reminders.task_id 
   AND tasks.user_id = auth.uid()
 ));
+
+-- ====================================================================================================
+
+-- Función que ejecutará el Trigger
+
+-- Este Trigger sirve para insertar los datos de un nuevo usuario registrado con éxito como un nuevo
+-- registro en la tabla Profiles al vigilar las inserciones en auth.users
+
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, first_name, last_name)
+  VALUES (
+    new.id, 
+    new.raw_user_meta_data->>'first_name',
+    new.raw_user_meta_data->>'last_name'
+  );
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==================================================
+
+-- Trigger que vigila auth.users ante nuevos registros
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
