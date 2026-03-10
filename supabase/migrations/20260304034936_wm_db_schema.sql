@@ -57,7 +57,7 @@ CREATE TABLE subtasks (
 CREATE TABLE reminders (
   reminder_id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   task_id UUID REFERENCES tasks(id) ON DELETE CASCADE NOT NULL,
-  days_advance INT NOT NULL
+  reminder_date TIMESTAMPTZ NOT NULL
 );
 
 -- ====================================================================================================
